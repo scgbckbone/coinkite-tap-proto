@@ -277,7 +277,7 @@ def get_block_chain():
 @click.option('--slot', '-s', type=int, metavar="#", default=0, help="Slot number, default: zero")
 @click.option('--subpath', '-p', type=str, metavar="0/0", help="Unhardened path (of max length 2) added to current card derivation path. Tapsigner only!")
 def sign_message(cvc, message, subpath, verbose=True, just_sig=False, slot=0):
-    """Sign a short text message"""
+    """Sign a short text message BIPXX"""
     card = get_card()
     cvc = cleanup_cvc(card, cvc)
 
@@ -296,9 +296,8 @@ def sign_message(cvc, message, subpath, verbose=True, just_sig=False, slot=0):
     else:
         addr = card.get_address(slot=slot)
         if verbose:
-            click.echo('-----BEGIN SIGNED MESSAGE-----\n{msg}\n-----BEGIN '
-                      'SIGNATURE-----\n{addr}\n{sig}\n-----END SIGNED MESSAGE-----'.format(
-                            msg=message.decode('ascii'), addr=addr, sig=sig))
+            click.echo(RFC_SIGNATURE_TEMPLATE.format(blockchain="BITCOIN", msg=message.decode('ascii'),
+                                                     addr=addr, sig=sig))
         else:
             click.echo('%s\n%s\n%s' % (message.decode('ascii'), addr, sig))
     

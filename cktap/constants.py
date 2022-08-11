@@ -50,4 +50,14 @@ SW_OKAY = 0x9000
 # path lengths (depth) is limited 8 components in derive command - check docs/limitations.md
 DERIVE_MAX_BIP32_PATH_DEPTH = 8
 
+# https://github.com/ZenulAbidin/bips/blob/master/bip-notatether-signedmessage.mediawiki
+RFC_SIGNATURE_TEMPLATE = '''\
+-----BEGIN {blockchain} SIGNED MESSAGE-----
+{msg}
+-----BEGIN {blockchain} SIGNATURE-----
+{addr}
+{sig}
+-----END {blockchain} SIGNATURE-----
+'''
+
 # EOF
