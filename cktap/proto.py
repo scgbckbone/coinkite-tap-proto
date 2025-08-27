@@ -234,8 +234,13 @@ class CKTapCard:
         if not all_hardened(path):
             raise ValueError("All path components must be hardened")
 
-        _, resp = self.send_auth('derive', cvc, path=path, nonce=pick_nonce())
+        picked_nonce = pick_nonce()
+        _, resp = self.send_auth('derive', cvc, path=path, nonce=picked_nonce)
+        msg = b'OPENDIME' + self.card_nonce + picked_nonce + resp["chain_code"]
+        assert len(msg) == 8 + CARD_NONCE_SIZE + USER_NONCE_SIZE + 32
 
+        ok = CT_sig_verify(resp["pubkey"], sha256s(msg), resp["sig"])
+        print("sig check ok?", ok)
         # XPUB would be better result here, but caller can use get_xpub() next
 
         return len(path), resp['chain_code'], resp['pubkey']
