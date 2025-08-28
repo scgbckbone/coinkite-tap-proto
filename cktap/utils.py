@@ -287,7 +287,7 @@ def verify_master_pubkey(pub, sig, chain_code, my_nonce, card_nonce):
     # using signature response from 'deriv' command, recover the master pubkey
     # for this slot
     msg = b'OPENDIME' + card_nonce + my_nonce + chain_code
-    assert len(msg) == 8 + CARD_NONCE_SIZE + USER_NONCE_SIZE + 32
+    assert len(msg) == (8 + CARD_NONCE_SIZE + USER_NONCE_SIZE + 32)
 
     ok = CT_sig_verify(pub, sha256s(msg), sig)
     if not ok:

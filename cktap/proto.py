@@ -235,12 +235,20 @@ class CKTapCard:
             raise ValueError("All path components must be hardened")
 
         picked_nonce = pick_nonce()
-        _, resp = self.send_auth('derive', cvc, path=path, nonce=picked_nonce)
-        msg = b'OPENDIME' + self.card_nonce + picked_nonce + resp["chain_code"]
-        assert len(msg) == 8 + CARD_NONCE_SIZE + USER_NONCE_SIZE + 32
+        _, st = self.send_auth('xpub', cvc, master=True)
+        root_xpub = st['xpub']
+        pko = PubKeyNode.parse(root_xpub)
 
-        ok = CT_sig_verify(resp["pubkey"], sha256s(msg), resp["sig"])
-        print("sig check ok?", ok)
+        _, resp = self.send_auth('derive', cvc, path=path, nonce=picked_nonce)
+        assert resp["master_pubkey"] == pko.key
+
+        # raises on invalid sig
+        verify_master_pubkey(resp["master_pubkey"], resp["sig"], pko.chain_code,
+                             picked_nonce, self.card_nonce)
+        # repro:
+        # $ cktap derive "m/488h/589h/1h"
+        # $ cktap derive "m"  # to get empty path
+        # both above fail sig check
         # XPUB would be better result here, but caller can use get_xpub() next
 
         return len(path), resp['chain_code'], resp['pubkey']
@@ -305,6 +313,7 @@ class CKTapCard:
             return pubkey
 
     def derive_xpub_at_path(self, cvc, fullpath: str):
+        # TODO unused but tested function
         # TAPSIGNER: Returns xpub for given full path.
         # - possible side-effect: it may need to change subpath stored on card
         assert self.is_tapsigner
